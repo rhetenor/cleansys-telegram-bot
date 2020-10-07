@@ -29,6 +29,10 @@ class CleansysTelegramBot:
     def _getSchedule(m):
       self.getSchedule(m)
 
+    @self.bot.message_handler(commands=['help'])
+    def _help(m):
+      self.getSchedule(m)
+
   def start_bot(self):
     self.bot.polling()
 
@@ -77,6 +81,11 @@ https://github.com/monoclecat/cleansys
 
 
   def help(self, m):
+    self.bot.send_message(m.chat.id, """Available commands:\n\
+/help Print this help\n\
+/start Start the bot\n\
+/schedule Print out the current weeks schedule
+    """)
     pass
 
 
