@@ -7,6 +7,38 @@ class CleansysAPI:
   def __init__(self, api_uri):
     self.api_uri = api_uri
 
+  def getLocations(self):
+    cleaningWeeks = self.getCleaningWeeksForWeekNumberUnix(self.__getCurrentUnixWeek__())
+
+    result = []
+    for cleaningWeek in cleaningWeeks:
+      schedule = self.__getRequest__(cleaningWeek["schedule"])
+      result.append(schedule["name"])
+
+    return result
+
+  def checkOutAssignmentForLocation(self, location, token):
+    cleaningWeeks = self.getCleaningWeeksForWeekNumberUnix(self.__getCurrentUnixWeek__())
+
+    for cleaningWeek in cleaningWeeks:
+      schedule = self.__getRequest__(cleaningWeek["schedule"])
+      if location in schedule["name"]:
+        assignment_set = self.__getRequest__(cleaningWeek["assignment_set"][0])
+        cleaner = self.__getRequest__(assignment_set["cleaner"])
+        for task in cleaningWeek["task_set"]:
+          self.__checkOutTask(task, assignment_set["cleaner"], token)
+        return
+
+    raise LookupError("Could not find location: " + location)
+
+  def __checkOutTask(self, task, cleaner, token):
+    headers={'Authorization': 'Token ' + token, 'Content-Type': 'application/json'}
+    payload={'cleaned_by': cleaner}
+    response = requests.patch(task, json.dumps(payload), headers=headers)
+
+    if response.status_code != 200:
+      raise requests.RequestException("Access problem")
+
   def getCurrentSchedule(self):
     cleaningWeeks = self.getCleaningWeeksForWeekNumberUnix(self.__getCurrentUnixWeek__())
 
